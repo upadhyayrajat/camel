@@ -16,8 +16,7 @@
  */
 package org.apache.camel.component.aws.http;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.EncryptionMaterials;
+import com.amazonaws.http.AmazonHttpClient;
 
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
@@ -26,35 +25,16 @@ import org.apache.camel.util.ObjectHelper;
 @UriParams
 public class HttpConfiguration implements Cloneable {
 
-    private String bucketName;
     @UriParam
-    private AmazonS3 amazonS3Client;
+    private AmazonHttpClient amazonHttpClient;
     @UriParam
     private String accessKey;
     @UriParam
     private String secretKey;
-    @UriParam(label = "consumer")
-    private String fileName;
-    @UriParam(label = "consumer")
-    private String prefix;
     @UriParam(label = "producer")
     private String region;
-    @UriParam(label = "consumer", defaultValue = "true")
-    private boolean deleteAfterRead = true;
-    @UriParam(label = "producer")
-    private boolean deleteAfterWrite;
-    @UriParam(label = "producer")
-    private boolean multiPartUpload;
-    @UriParam(label = "producer", defaultValue = "" + 25 * 1024 * 1024)
-    private long partSize = 25 * 1024 * 1024;
     @UriParam
-    private String amazonS3Endpoint;
-    @UriParam
-    private String policy;
-    @UriParam(label = "producer")
-    private String storageClass;
-    @UriParam(label = "producer")
-    private String serverSideEncryption;
+    private String amazonHttpEndpoint;
     @UriParam
     private String proxyHost;
     @UriParam
@@ -63,8 +43,6 @@ public class HttpConfiguration implements Cloneable {
     private boolean includeBody = true;
     @UriParam
     private boolean pathStyleAccess;
-    @UriParam(label = "producer", enums = "copyObject,deleteBucket,listBuckets")
-    private S3Operations operation;
     @UriParam(label = "consumer,advanced", defaultValue = "true")
     private boolean autocloseBody = true;
     @UriParam(label = "common")
@@ -72,39 +50,16 @@ public class HttpConfiguration implements Cloneable {
     @UriParam(label = "common", defaultValue = "false")
     private boolean useEncryption;
 
-    public long getPartSize() {
-        return partSize;
-    }
 
     /**
- *      * Setup the partSize which is used in multi part upload,
- *           * the default size is 25M.
- *                */
-    public void setPartSize(long partSize) {
-        this.partSize = partSize;
-    }
-
-    public boolean isMultiPartUpload() {
-        return multiPartUpload;
-    }
-
-    /**
- *      * If it is true, camel will upload the file with multi part
- *           * format, the part size is decided by the option of `partSize`
- *                */
-    public void setMultiPartUpload(boolean multiPartUpload) {
-        this.multiPartUpload = multiPartUpload;
-    }
-
-    /**
- *      * The region with which the AWS-S3 client wants to work with.
+ *      * The region with which the AWS-HTTP client wants to work with.
  *           */
-    public void setAmazonS3Endpoint(String amazonS3Endpoint) {
-        this.amazonS3Endpoint = amazonS3Endpoint;
+    public void setAmazonHttpEndpoint(String amazonHttpEndpoint) {
+        this.amazonHttpEndpoint = amazonHttpEndpoint;
     }
 
-    public String getAmazonS3Endpoint() {
-        return amazonS3Endpoint;
+    public String getAmazonHttpEndpoint() {
+        return amazonHttpEndpoint;
     }
 
     public String getAccessKey() {
@@ -129,53 +84,22 @@ public class HttpConfiguration implements Cloneable {
         this.secretKey = secretKey;
     }
 
-    public AmazonS3 getAmazonS3Client() {
-        return amazonS3Client;
+    public AmazonHttpClient getAmazonHttpClient() {
+        return amazonHttpClient;
     }
 
     /**
  *      * Reference to a `com.amazonaws.services.sqs.AmazonS3` in the
  *           * link:registry.html[Registry].
  *                */
-    public void setAmazonS3Client(AmazonS3 amazonS3Client) {
-        this.amazonS3Client = amazonS3Client;
+    public void setAmazonHttpClient(AmazonHttpClient amazonHttpClient) {
+        this.amazonHttpClient = amazonHttpClient;
     }
 
     public String getPrefix() {
         return prefix;
     }
 
-    /**
- *      * The prefix which is used in the
- *           * com.amazonaws.services.s3.model.ListObjectsRequest to only consume
- *                * objects we are interested in.
- *                     */
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public String getBucketName() {
-        return bucketName;
-    }
-
-    /**
- *      * Name of the bucket. The bucket will be created if it don't already
- *           * exists.
- *                */
-    public void setBucketName(String bucketName) {
-        this.bucketName = bucketName;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    /**
- *      * To get the object from the bucket with the given file name
- *           */
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
 
     public String getRegion() {
         return region;
@@ -294,27 +218,6 @@ public class HttpConfiguration implements Cloneable {
         this.proxyPort = proxyPort;
     }
 
-    /**
- *      * Whether or not the S3 client should use path style access
- *           */
-    public void setPathStyleAccess(final boolean pathStyleAccess) {
-        this.pathStyleAccess = pathStyleAccess;
-    }
-
-    public boolean isPathStyleAccess() {
-        return pathStyleAccess;
-    }
-
-    public S3Operations getOperation() {
-        return operation;
-    }
-
-    /**
- *      * The operation to do in case the user don't want to do only an upload
- *           */
-    public void setOperation(S3Operations operation) {
-        this.operation = operation;
-    }
 
     public boolean isAutocloseBody() {
         return autocloseBody;

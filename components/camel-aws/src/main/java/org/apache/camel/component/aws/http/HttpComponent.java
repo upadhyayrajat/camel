@@ -24,6 +24,17 @@ import org.apache.camel.impl.UriEndpointComponent;
 
 public class HttpComponent extends UriEndpointComponent {
     
+    @Metadata
+    private String accessKey;
+
+    @Metadata
+    private String secretKey;
+
+    @Metadata
+    private String region;
+
+    private HttpConfiguration configuration;
+
     public HttpComponent() {
         super(HttpEndpoint.class);
     }
@@ -32,25 +43,52 @@ public class HttpComponent extends UriEndpointComponent {
         super(context, HttpEndpoint.class);
     }
 
-    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        HttpConfiguration configuration = new HttpConfiguration();
+    protected Endpoint createEndpoint(String uri, Map<String, Object> parameters) throws Exception {
+        final HttpConfiguration configuration = this.configuration.copy();
         setProperties(configuration, parameters);
 
-        if (remaining == null || remaining.trim().length() == 0) {
-            throw new IllegalArgumentException("Bucket name must be specified.");
-        }
-        if (remaining.startsWith("arn:")) {
-            remaining = remaining.substring(remaining.lastIndexOf(":") + 1, remaining.length());
-        }
-        configuration.setBucketName(remaining);
 
-        if (configuration.getAmazonS3Client() == null && (configuration.getAccessKey() == null || configuration.getSecretKey() == null)) {
-            throw new IllegalArgumentException("AmazonS3Client or accessKey and secretKey must be specified");
+        if (configuration.getAmazonHttpClient() == null && (configuration.getAccessKey() == null || configuration.getSecretKey() == null)) {
+            throw new IllegalArgumentException("AmazonHttpClient or accessKey and secretKey must be specified");
         }
 
         HttpEndpoint endpoint = new HttpEndpoint(uri, this, configuration);
         setProperties(endpoint, parameters);
         return endpoint;
+    }
+
+    public HttpConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(HttpConfiguration configuration) {
+        this.configuration = configuration;
+    }
+
+    /**
+     * Amazon AWS Access Key
+     */
+    public void setAccessKey(String accessKey) {
+        configuration.setAccessKey(accessKey);
+    }
+
+    public String getSecretKey() {
+        return configuration.getSecretKey();
+    }
+
+    /**
+     * Amazon AWS Secret Key
+     */
+    public void setSecretKey(String secretKey) {
+        configuration.setSecretKey(secretKey);
+    }
+    
+    public String getRegion() {
+        return configuration.getRegion();
+    }
+
+    public void setRegion(String region) {
+        configuration.setRegion(region);
     }
 }
 

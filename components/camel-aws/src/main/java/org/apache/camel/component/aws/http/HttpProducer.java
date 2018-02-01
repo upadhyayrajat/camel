@@ -28,24 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.amazonaws.services.cloudfront.model.InvalidArgumentException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.Bucket;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
-import com.amazonaws.services.s3.model.CompleteMultipartUploadResult;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.CopyObjectResult;
-import com.amazonaws.services.s3.model.DeleteBucketRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PartETag;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.StorageClass;
-import com.amazonaws.services.s3.model.UploadPartRequest;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -71,6 +53,8 @@ public class HttpProducer extends DefaultProducer {
 
     private transient String HttpProducerToString;
     
+    private String serviceName="execute-api";
+
     public HttpProducer(final Endpoint endpoint) {
         super(endpoint);
     }
@@ -78,29 +62,21 @@ public class HttpProducer extends DefaultProducer {
 
     @Override
     public void process(final Exchange exchange) throws Exception {
-        S3Operations operation = determineOperation(exchange);
-        if (ObjectHelper.isEmpty(operation)) {
-            if (getConfiguration().isMultiPartUpload()) {
-                processMultiPart(exchange);
-            } else {
-                processSingleOp(exchange);
-            }
-        } else {
-            switch (operation) {
-            case copyObject:
-                copyObject(getEndpoint().getS3Client(), exchange);
-                break;
-            case listBuckets:
-                listBuckets(getEndpoint().getS3Client(), exchange);
-                break;
-            case deleteBucket:
-                deleteBucket(getEndpoint().getS3Client(), exchange);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported operation");
-            }
-        }
-    }
+    	
+	}
+
+
+    public void doPost() {
+
+        Request<Void> request = new DefaultRequest<Void>(serviveName);
+        request.setHttpMethod(HttpMethodName.POST);
+        request.setEndpoint(URI.create(serviceUrl));
+
+        AWS4Signer signer = new AWS4Signer();
+        signer.setRegionName(" ");
+        signer.setServiceName(request.getServiceName());
+        signer.sign(request,new BasicAWSCredentials(this.configuration.getAccessKey(), this.configuration.getSecretKey()));
+	}
 
     public void processMultiPart(final Exchange exchange) throws Exception {
         File filePayload = null;
